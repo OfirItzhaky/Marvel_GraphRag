@@ -1,0 +1,31 @@
+# === PYTHON ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+*.log
+
+# === ENVIRONMENTS ===
+.venv/
+env/
+venv/
+ENV/
+*.env
+
+# === IDEs ===
+.idea/
+.vscode/
+
+# === OS FILES ===
+.DS_Store
+Thumbs.db
+
+# === NOTEBOOKS ===
+.ipynb_checkpoints/
+
+# === CACHE ===
+.cache/
+.nltk_cache/
+tiktoken_cache/
