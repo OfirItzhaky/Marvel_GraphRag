@@ -1,36 +1,40 @@
 # character_bios.py
 
+# character_bios.py
+
 CHARACTER_BIOS = {
     "Wolverine": (
-        "Wolverine, also known as Logan, is a mutant with a regenerative healing factor, animal-like senses, and retractable claws coated with adamantium. "
-        "He is a core member of the X-Men and has lived for over a century due to his accelerated healing."
+        "Wolverine, also known as Logan, is known for his lone-wolf attitude and gruff demeanor. "
+        "His mysterious past includes time as a soldier, mercenary, and test subject in government experiments. "
+        "Despite his rugged exterior, he often shows a protective side, especially toward younger mutants like Rogue and Jubilee."
     ),
     "Storm": (
-        "Storm, born Ororo Munroe, is a powerful mutant capable of manipulating weather patterns. "
-        "She was worshipped as a goddess in Africa before joining the X-Men under Professor X's leadership."
+        "Storm, born Ororo Munroe, was orphaned in Cairo and lived as a street thief before discovering her powers. "
+        "She is one of the first female leaders of the X-Men and is highly respected for her calm authority and spiritual connection to nature."
     ),
     "Professor X": (
-        "Professor Charles Xavier is a telepathic mutant and the founder of the X-Men. "
-        "He advocates for peaceful coexistence between humans and mutants, operating from his Xavier Institute."
+        "Professor Charles Xavier is a brilliant geneticist and philosopher who built his mansion into a haven for mutants. "
+        "Paralyzed from the waist down, he operates Cerebro to locate and protect young mutants around the world."
     ),
     "Magneto": (
-        "Magneto, born Erik Lehnsherr, is a Holocaust survivor and master of magnetism. "
-        "He believes mutants are superior and has led the Brotherhood to secure their dominance, often clashing with Professor X."
+        "Magneto, born Erik Lehnsherr, endured the horrors of the Holocaust, which shaped his conviction that mutants must fight for survival. "
+        "A complex anti-hero, he often wavers between militant action and uneasy alliance with Professor X."
     ),
     "Jean Grey": (
-        "Jean Grey is a powerful mutant telepath and telekinetic. As one of the original X-Men, she has a deep connection with the Phoenix Force, "
-        "an entity that amplifies her abilities but poses a threat when uncontrollable."
+        "Jean Grey is one of the most emotionally complex members of the X-Men, often struggling with the immense power of the Phoenix Force. "
+        "She shares a deep, often tragic love with Cyclops, and her inner battles have placed her at the center of multiple pivotal events in mutant history."
     ),
     "Cyclops": (
-        "Cyclops, or Scott Summers, emits powerful optic blasts from his eyes. "
-        "He leads the X-Men in the field and is known for his disciplined, tactical mindset and leadership under Professor X."
+        "Cyclops, or Scott Summers, grew up in an orphanage and endured a difficult childhood separated from his brother Havok. "
+        "His strong sense of duty and occasional rigidity often put him at odds with more rebellious teammates like Wolverine."
     ),
     "Beast": (
-        "Beast, or Dr. Hank McCoy, is a brilliant scientist with a strong, agile, blue-furred physique. "
-        "Despite his appearance, he's a gentle intellectual voice among the X-Men and a pioneer in mutant genetics."
+        "Beast, or Dr. Hank McCoy, earned his PhD in biophysics and genetics and served in multiple scientific advisory roles. "
+        "His eloquence and wit contrast with his beastly appearance, and he often contemplates the balance between intellect and instinct."
     ),
     "Mystique": (
-        "Mystique, a shapeshifter and member of the Brotherhood, can alter her appearance to mimic anyone. "
-        "She is cunning, strategic, and deeply involved in mutant resistance movements."
+        "Mystique is an elusive figure with a complicated moral code. She has deep ties to both Magneto and Professor X, and her loyalties often shift. "
+        "She is the biological mother of Nightcrawler and adoptive mother of Rogue, though these facts are not always known to her enemies or allies."
     ),
 }
+

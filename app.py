@@ -107,15 +107,37 @@ def query():
     from character_bios import CHARACTER_BIOS
 
     # Prepare bios string
+    from character_bios import CHARACTER_BIOS
+
     bios_snippets = "\n".join([f"{k}: {v}" for k, v in CHARACTER_BIOS.items()])
 
-    # Prepend instruction to query
-    modified_query = (
-        "Before answering the question, insert a short 1–2 sentence bio for each relevant character "
-        "using only the following bios:\n"
-        f"{bios_snippets}\n\n"
-        f"Question: {user_query}"
+    example_bio = (
+        "Jean Grey: Jean Grey is a powerful mutant telepath and telekinetic. "
+        "She shares a deep, often tragic love with Cyclops, and her inner battles have placed her at the center of multiple pivotal events."
     )
+
+    example_question = "What gene gives Jean Grey her telekinetic powers?"
+    example_answer = (
+        "🧬 Biography:\n"
+        f"{example_bio}\n\n"
+        "🧠 Answer:\n"
+        "Jean Grey's telekinetic powers are conferred by the Telepathy Mutation."
+    )
+
+    modified_query = (
+        "You are a Marvel AI assistant trained on genetic data, powers, and affiliations.\n"
+        "When answering questions, you must first identify the characters mentioned or implied by the query.\n"
+        "Then, for each such character, include a short 1–2 sentence biography from the list provided below.\n"
+        "Use only these bios and graph facts. Avoid speculation or outside knowledge.\n\n"
+        "Bios:\n"
+        f"{bios_snippets}\n\n"
+        "Here’s an example format:\n"
+        f"Q: {example_question}\n"
+        f"{example_answer}\n\n"
+        f"Now answer this question:\nQ: {user_query}"
+    )
+
+
 
     # Call orchestrator with modified query
     final_state = orchestrator.app.invoke({"query": modified_query})
