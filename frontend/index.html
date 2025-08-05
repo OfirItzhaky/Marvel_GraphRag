@@ -57,6 +57,7 @@
                 <span id="submit-btn-spinner" class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
             </button>
             <button type="button" id="reset-cache-btn" class="btn btn-outline-danger">Reset Cache</button>
+            <button type="button" id="show-graph-btn" class="btn btn-outline-secondary ms-2">Show Graph</button>
         </div>
     </form>
     <div id="result-container" class="d-none">
@@ -68,6 +69,10 @@
         </div>
         <div class="alert alert-info" id="cost-info"></div>
         <div id="build-status" class="alert alert-secondary mt-3" style="display: none;"></div>
+        <div id="graph-container" class="mt-4" style="display:none;">
+            <h5>Marvel Graph Visualization</h5>
+            <img id="graphImage" src="" alt="Marvel Graph" class="img-fluid border rounded shadow-sm" style="max-height:500px; background:#fff;"/>
+        </div>
     </div>
     <div id="toast-container" class="position-fixed bottom-0 end-0 p-3" style="z-index: 11"></div>
 </div>

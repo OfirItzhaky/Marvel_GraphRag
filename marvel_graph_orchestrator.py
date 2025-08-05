@@ -1,6 +1,9 @@
+import json
+
 from langgraph.graph import StateGraph
 
-from config import QUERY_ROUTING_RULES
+from character_bios import CHARACTER_BIOS
+from config import QUERY_ROUTING_RULES, CHOSEN_MODEL
 from state_models import MarvelState
 
 
@@ -8,6 +11,7 @@ class MarvelGraphOrchestrator:
     def __init__(self, query_engine):
         self.query_engine = query_engine
         self.app = self._build_graph()
+
 
     def classify_query_node(self, state: MarvelState) -> dict:
         print("🧭 classify_query_node received:", state)

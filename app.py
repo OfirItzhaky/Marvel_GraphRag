@@ -1,10 +1,15 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 import os
 import json
+import io
+import networkx as nx
+import matplotlib.pyplot as plt
 from cache_utils import clear_cache, cache_exists, ensure_cache_dir
+from character_bios import CHARACTER_BIOS
 from config import OPENAI_API_KEY, CHOSEN_MODEL, CHOSEN_MODEL_EMBEDDINGS
 from cost_utils import calc_cost
-from graph_utils import build_and_save_mock_marvel_graph, extract_humanized_triplets_from_graph, filter_documents_by_rules
+from graph_utils import build_and_save_mock_marvel_graph, extract_humanized_triplets_from_graph, \
+    filter_documents_by_rules
 from marvel_graph_orchestrator import MarvelGraphOrchestrator
 from llama_index.core.callbacks import TokenCountingHandler
 from llama_index.core.indices.property_graph import PropertyGraphIndex, SchemaLLMPathExtractor
@@ -13,9 +18,8 @@ from llama_index.embeddings.openai import OpenAIEmbedding
 from llama_index.llms.openai import OpenAI
 from llama_index.core.schema import Document
 import asyncio
-from flask import send_from_directory
-
-
+from flask import send_from_directory, render_template
+import networkx as nx
 
 app = Flask(__name__)
 
@@ -36,7 +40,7 @@ def query():
 
     # Step 1: Build/load graph
     if graph_cached:
-        import networkx as nx
+
         graph = nx.read_gml(graph_path)
         graph_status = 'cached'
     else:
@@ -100,7 +104,21 @@ def query():
 
     # Step 6: Run orchestrator
     orchestrator = MarvelGraphOrchestrator(query_engine)
-    final_state = orchestrator.app.invoke({"query": user_query})
+    from character_bios import CHARACTER_BIOS
+
+    # Prepare bios string
+    bios_snippets = "\n".join([f"{k}: {v}" for k, v in CHARACTER_BIOS.items()])
+
+    # Prepend instruction to query
+    modified_query = (
+        "Before answering the question, insert a short 1–2 sentence bio for each relevant character "
+        "using only the following bios:\n"
+        f"{bios_snippets}\n\n"
+        f"Question: {user_query}"
+    )
+
+    # Call orchestrator with modified query
+    final_state = orchestrator.app.invoke({"query": modified_query})
     response = final_state["final_response"]
 
     # Step 7: Calculate cost
@@ -147,6 +165,29 @@ def cache_status():
         "triplets": triplets_exists
     })
 
+@app.route('/show-graph', methods=['GET'])
+def show_graph():
+    graph_path = os.path.join('graphs', 'marvel_graph.gml')
+    if not os.path.exists(graph_path):
+        return jsonify({"error": "Graph not yet built. Please run a query first."}), 404
+    # Load graph
+    G = nx.read_gml(graph_path)
+    # Draw graph (reuse logic from build_and_save_mock_marvel_graph)
+    pos = nx.spring_layout(G, seed=42)
+    edge_labels = nx.get_edge_attributes(G, 'relation')
+    plt.figure(figsize=(10, 7))
+    nx.draw(G, pos, with_labels=True, node_color='lightcoral', node_size=2500,
+            font_size=9, font_weight='bold', arrows=True)
+    nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_color='gray')
+    plt.title("Mock Marvel Universe Graph")
+    plt.tight_layout()
+    # Save to BytesIO
+    img_bytes = io.BytesIO()
+    plt.savefig(img_bytes, format='png')
+    plt.close()
+    img_bytes.seek(0)
+    return send_file(img_bytes, mimetype='image/png')
+
 @app.route('/')
 def serve_index():
     return send_from_directory('frontend', 'index.html')
@@ -154,6 +195,9 @@ def serve_index():
 @app.route('/<path:path>')
 def serve_static_file(path):
     return send_from_directory('frontend', path)
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)

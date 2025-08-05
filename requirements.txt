@@ -10,4 +10,5 @@ numpy==2.3.2
 flask==2.3.0
 python-dotenv==1.1.1
 tiktoken==0.9.0
-langgraph==0.0.48
+langgraph==0.0.48   #TODO: CHECK FIX TO 0.6
+
