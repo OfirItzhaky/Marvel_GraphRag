@@ -1,0 +1,32 @@
+body {
+    background: #f8f9fa;
+}
+
+h1 {
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+#result-container {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+#answer-text {
+    font-size: 1.15rem;
+    color: #222;
+}
+
+#cost-info {
+    font-size: 1rem;
+    margin-bottom: 0;
+}
+
+#toast-container .toast {
+    min-width: 220px;
+}
+
+.card-header {
+    background: #e9ecef;
+    font-weight: 500;
+}

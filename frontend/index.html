@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marvel GraphRAG UI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container py-5">
+    <h1 class="mb-4 text-center">🦸‍♂️ Marvel GraphRAG Demo</h1>
+    <form id="query-form" class="card p-4 mb-4 shadow-sm">
+        <div class="mb-3">
+            <label for="api-key" class="form-label">OpenAI API Key</label>
+            <input type="password" class="form-control" id="api-key" placeholder="sk-..." autocomplete="off">
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label">LLM Model</label>
+                <div id="llm-model-group">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="llm-model" id="llm-35" value="gpt-3.5-turbo" checked>
+                        <label class="form-check-label" for="llm-35">gpt-3.5-turbo</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="llm-model" id="llm-4o" value="gpt-4o">
+                        <label class="form-check-label" for="llm-4o">gpt-4o</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="llm-model" id="llm-4t" value="gpt-4-turbo">
+                        <label class="form-check-label" for="llm-4t">gpt-4-turbo</label>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Embedding Model</label>
+                <div id="embedding-model-group">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="embedding-model" id="embed-ada" value="text-embedding-ada-002" checked>
+                        <label class="form-check-label" for="embed-ada">text-embedding-ada-002</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="embedding-model" id="embed-3l" value="text-embedding-3-large">
+                        <label class="form-check-label" for="embed-3l">text-embedding-3-large</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="query" class="form-label">Marvel Query</label>
+            <input type="text" class="form-control" id="query" placeholder="e.g. What gene gives Jean Grey her telekinetic powers?" required>
+        </div>
+        <div class="d-flex justify-content-between align-items-center">
+            <button type="submit" class="btn btn-primary" id="submit-btn">
+                <span id="submit-btn-text">Submit</span>
+                <span id="submit-btn-spinner" class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
+            </button>
+            <button type="button" id="reset-cache-btn" class="btn btn-outline-danger">Reset Cache</button>
+        </div>
+    </form>
+    <div id="result-container" class="d-none">
+        <div class="card mb-3">
+            <div class="card-header">LLM Answer</div>
+            <div class="card-body">
+                <p id="answer-text" class="mb-0"></p>
+            </div>
+        </div>
+        <div class="alert alert-info" id="cost-info"></div>
+    </div>
+    <div id="toast-container" class="position-fixed bottom-0 end-0 p-3" style="z-index: 11"></div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
