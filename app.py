@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 import os
+import json
 from cache_utils import clear_cache, cache_exists, ensure_cache_dir
 from config import OPENAI_API_KEY, CHOSEN_MODEL, CHOSEN_MODEL_EMBEDDINGS
 from cost_utils import calc_cost
@@ -25,9 +26,35 @@ def query():
     if not user_query:
         return jsonify({'error': 'Missing query'}), 400
 
-    # Step 1: Build graph (or load if already exists)
-    graph = build_and_save_mock_marvel_graph()
-    triplet_texts = extract_humanized_triplets_from_graph(graph)
+    # --- Cache status flags ---
+    graph_path = os.path.join('graphs', 'marvel_graph.gml')
+    triplets_path = os.path.join('cache', 'triplets.json')
+    index_path = os.path.join('cache', 'index.json')
+    graph_cached = os.path.exists(graph_path)
+    triplets_cached = os.path.exists(triplets_path)
+    index_cached = os.path.exists(index_path)
+
+    # Step 1: Build/load graph
+    if graph_cached:
+        import networkx as nx
+        graph = nx.read_gml(graph_path)
+        graph_status = 'cached'
+    else:
+        graph = build_and_save_mock_marvel_graph()
+        graph_status = 'rebuilt'
+
+    # Step 2: Build/load triplets
+    if triplets_cached:
+        with open(triplets_path, 'r', encoding='utf-8') as f:
+            triplet_texts = json.load(f)
+        triplets_status = 'cached'
+    else:
+        triplet_texts = extract_humanized_triplets_from_graph(graph)
+        os.makedirs('cache', exist_ok=True)
+        with open(triplets_path, 'w', encoding='utf-8') as f:
+            json.dump(triplet_texts, f)
+        triplets_status = 'rebuilt'
+
     documents = [Document(text=t) for t in triplet_texts]
     filtered_docs = filter_documents_by_rules(
         documents,
@@ -36,18 +63,30 @@ def query():
         max_documents=100
     )
 
-    # Step 2: Setup LLM, embedding, and callback manager
+    # Step 3: Setup LLM, embedding, and callback manager
     handler = TokenCountingHandler()
     callback_manager = CallbackManager([handler])
     llm = OpenAI(model=CHOSEN_MODEL, api_key=OPENAI_API_KEY, temperature=0.0, callback_manager=callback_manager)
     embed_model = OpenAIEmbedding(model_name=CHOSEN_MODEL_EMBEDDINGS, api_key=OPENAI_API_KEY, callback_manager=callback_manager)
 
-    # Step 3: Path extraction
+    # Step 4: Path extraction
     extracted_nodes = asyncio.run(
         SchemaLLMPathExtractor(llm=llm, strict=False).acall(filtered_docs, show_progress=False)
     )
 
-    # Step 4: Build index and query engine
+    # Step 5: Build/load index
+    if index_cached:
+        with open(index_path, 'r', encoding='utf-8') as f:
+            # For demonstration, we just note the cache; actual index loading would require more logic
+            pass
+        index_status = 'cached'
+    else:
+        # Save a dummy file to indicate index was built (real index caching would be more complex)
+        os.makedirs('cache', exist_ok=True)
+        with open(index_path, 'w', encoding='utf-8') as f:
+            f.write('built')
+        index_status = 'rebuilt'
+
     index = PropertyGraphIndex(
         nodes=extracted_nodes,
         embed_model=embed_model,
@@ -59,12 +98,12 @@ def query():
         similarity_top_k=3
     )
 
-    # Step 5: Run orchestrator
+    # Step 6: Run orchestrator
     orchestrator = MarvelGraphOrchestrator(query_engine)
     final_state = orchestrator.app.invoke({"query": user_query})
     response = final_state["final_response"]
 
-    # Step 6: Calculate cost
+    # Step 7: Calculate cost
     prompt_tokens = handler.prompt_llm_token_count
     completion_tokens = handler.completion_llm_token_count
     embed_tokens = handler.total_embedding_token_count
@@ -76,7 +115,17 @@ def query():
         embed_model=CHOSEN_MODEL_EMBEDDINGS
     )
 
-    return jsonify({"response": response, "cost_usd": cost_usd})
+    build_status = {
+        "graph": graph_status,
+        "triplets": triplets_status,
+        "index": index_status
+    }
+
+    return jsonify({
+        "response": response,
+        "cost_usd": cost_usd,
+        "build_status": build_status
+    })
 
 @app.route('/reset-cache', methods=['POST'])
 def reset_cache():

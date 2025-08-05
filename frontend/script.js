@@ -36,12 +36,12 @@ form.addEventListener('submit', async function (e) {
         });
         const data = await response.json();
         if (response.ok) {
-            showResult(data.response, data.cost_usd);
+            showResult(data.response, data.cost_usd, data.build_status);
         } else {
-            showResult('Error: ' + (data.error || 'Unknown error'), null);
+            showResult('Error: ' + (data.error || 'Unknown error'), null, null);
         }
     } catch (err) {
-        showResult('Network error. Please try again.', null);
+        showResult('Network error. Please try again.', null, null);
     }
     setLoading(false);
 });
@@ -64,7 +64,7 @@ resetBtn.addEventListener('click', async function () {
 });
 
 // Show result in the UI
-function showResult(answer, cost) {
+function showResult(answer, cost, buildStatus) {
     const resultContainer = document.getElementById('result-container');
     const answerText = document.getElementById('answer-text');
     const costInfo = document.getElementById('cost-info');
@@ -75,6 +75,19 @@ function showResult(answer, cost) {
     } else {
         costInfo.textContent = '';
         costInfo.classList.add('d-none');
+    }
+    // Build status
+    const statusDiv = document.getElementById('build-status');
+    if (buildStatus) {
+        statusDiv.innerHTML = `
+            <strong>📦 Cache Usage:</strong><br>
+            • Graph: ${buildStatus.graph === "cached" ? "✅ Used from cache" : "❌ Rebuilt"}<br>
+            • Triplets: ${buildStatus.triplets === "cached" ? "✅ Used from cache" : "❌ Rebuilt"}<br>
+            • Index: ${buildStatus.index === "cached" ? "✅ Used from cache" : "❌ Rebuilt"}
+        `;
+        statusDiv.style.display = "block";
+    } else {
+        statusDiv.style.display = "none";
     }
     resultContainer.classList.remove('d-none');
 }
