@@ -5,7 +5,10 @@ from llama_index.core.indices.property_graph import PropertyGraphIndex, SchemaLL
 import openai
 from llama_index.core.callbacks import CallbackManager
 from dotenv import load_dotenv
-
+from langgraph.graph import StateGraph
+from llama_index.embeddings.openai import OpenAIEmbedding
+from llama_index.llms.openai import OpenAI
+from pydantic import BaseModel
 from typing import List, Optional
 from llama_index.core.schema import Document
 
@@ -212,35 +215,74 @@ def print_cost_breakdown(handler, model="gpt-3.5-turbo-0125", embed_model="text-
     )
 
     print(f"💸 Total Estimated Cost: ${total_cost:.5f} USD ({total_cost * 100:.2f}¢)")
-# from langgraph.graph import StateGraph
-#
-# from pydantic import BaseModel
-#
-# class MarvelState(BaseModel):
-#     query: str
-#     query_type: str = "default"
-#     raw_result: str = ""
-#     final_response: str = ""
-#
-# # Step 2: Define a function to route query through our existing RAG engine
-# def marvel_query_node(state: MarvelState) -> MarvelState:
-#     response = query_engine.query(state.query)
-#     state.result = str(response)
-#     return state
-#
-# # Step 3: Initialize and register in Langraph
-# rag_graph = StateGraph(MarvelState)
-# rag_graph.add_node("query_node", marvel_query_node)
-# rag_graph.set_entry_point("query_node")
-# rag_graph.set_finish_point("query_node")
-#
-# # Step 4: Compile and run it
-# app = rag_graph.compile()
-#
-# # Example usage
-# user_query = "Which team is Jean Grey a member of?"
-# final_state = app.invoke(MarvelState(query=user_query))
-# print("Langraph Output:", final_state.result)
+
+QUERY_ROUTING_RULES = {
+    "mutation_path": ["gene", "mutation", "power", "confers"],
+    "team_lookup": ["team", "x-men", "brotherhood", "avengers"]
+}
+
+class MarvelState(BaseModel):
+    query: str
+    query_type: Optional[str] = "default"
+    raw_result: Optional[str] = ""
+    final_response: Optional[str] = ""
+
+class MarvelGraphOrchestrator:
+    def __init__(self, query_engine):
+        self.query_engine = query_engine
+        self.app = self._build_graph()
+
+    def classify_query_node(self, state: MarvelState) -> dict:
+        print("🧭 classify_query_node received:", state)
+
+        q = state.query.lower()
+        matched_type = "default"
+
+        for query_type, keywords in QUERY_ROUTING_RULES.items():
+            if any(k in q for k in keywords):
+                matched_type = query_type
+                break
+
+        new_state = {
+            "query": state.query,
+            "query_type": matched_type,
+            "raw_result": "",
+            "final_response": ""
+        }
+
+        print("✅ classify_query_node returning:", new_state)
+        return new_state
+
+    def query_graph_node(self, state: MarvelState) -> dict:
+        print("📡 query_graph_node running...")
+
+        response = self.query_engine.query(state.query)
+        state.raw_result = str(response)
+        return dict(state)
+
+    def format_response_node(self, state: MarvelState) -> dict:
+        print("🎨 format_response_node running...")
+
+        state.final_response = f"🧠 Answer: {state.raw_result.strip()}"
+        return dict(state)
+
+    def _build_graph(self):
+        graph = StateGraph(MarvelState)
+
+        graph.add_node("classify", self.classify_query_node)
+        graph.add_node("query_graph", self.query_graph_node)
+        graph.add_node("format_response", self.format_response_node)
+
+        def route(state: MarvelState) -> str:
+            return "query_graph"
+
+        graph.set_entry_point("classify")
+        graph.add_conditional_edges("classify", route)
+        graph.add_edge("query_graph", "format_response")
+        graph.set_finish_point("format_response")
+
+        return graph.compile()
+
 
 
 if __name__ == '__main__':
@@ -253,8 +295,7 @@ if __name__ == '__main__':
     graph =     build_and_save_mock_marvel_graph()
 
 
-    from llama_index.embeddings.openai import OpenAIEmbedding
-    from llama_index.llms.openai import OpenAI
+
 
     triplet_texts = extract_humanized_triplets_from_graph(graph)
     documents = [Document(text=t) for t in triplet_texts]
@@ -284,10 +325,7 @@ if __name__ == '__main__':
         SchemaLLMPathExtractor(llm=llm, strict=False).acall(filtered_docs, show_progress=True))
 
     # manual triplet extraction:
-    # 1. Extract triplets from raw documents
-    extracted_nodes = asyncio.run(
-        SchemaLLMPathExtractor(llm=llm, strict=False).acall(filtered_docs)
-    )
+
 
     # 2. Build the index properly
     index = PropertyGraphIndex(
@@ -303,16 +341,14 @@ if __name__ == '__main__':
         similarity_top_k=3
     )
 
-    # 4. Example query
-    query = "Trace the mutation and power path that links Mystique to her shapeshifting abilities."
-    response = query_engine.query(query)
+    print("\n🚀 Running LangGraph-powered orchestrator")
 
+    orchestrator = MarvelGraphOrchestrator(query_engine)
+    test_query = "What gene gives Jean Grey her telekinetic powers?"
+    final_state = orchestrator.app.invoke({"query": test_query})
 
-
-    print_cost_breakdown(handler,model=CHOSEN_MODEL,embed_model=CHOSEN_MODEL_EMBEDDINGS)
-
-    print(response)
-
+    print_cost_breakdown(handler, model=CHOSEN_MODEL, embed_model=CHOSEN_MODEL_EMBEDDINGS)
+    print(final_state["final_response"])
 
 # ✅ Easy
 
