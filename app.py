@@ -19,6 +19,7 @@ from llama_index.core.schema import Document
 import asyncio
 from flask import send_from_directory
 import networkx as nx
+import time
 
 app = Flask(__name__)
 
@@ -43,15 +44,17 @@ def question():
     index_cached = os.path.exists(index_path)
 
     # Step 1: Build/load graph
+    t0 = time.time()
     if graph_cached:
-
         graph = nx.read_gml(graph_path)
         graph_status = 'cached'
     else:
         graph = build_and_save_mock_marvel_graph()
         graph_status = 'rebuilt'
+    print(f"⏱️ Graph load/build took {time.time() - t0:.2f} seconds")
 
     # Step 2: Build/load triplets
+    t1 = time.time()
     if triplets_cached:
         with open(triplets_path, 'r', encoding='utf-8') as f:
             triplet_texts = json.load(f)
@@ -62,7 +65,10 @@ def question():
         with open(triplets_path, 'w', encoding='utf-8') as f:
             json.dump(triplet_texts, f)
         triplets_status = 'rebuilt'
+    print(f"⏱️ Triplet extraction/load took {time.time() - t1:.2f} seconds")
 
+    # Step 3: Document filtering
+    t2 = time.time()
     documents = [Document(text=t) for t in triplet_texts]
     filtered_docs = filter_documents_by_rules(
         documents,
@@ -70,8 +76,9 @@ def question():
         exclude_keywords=None,
         max_documents=100
     )
+    print(f"⏱️ Document filtering took {time.time() - t2:.2f} seconds")
 
-    # Step 3: Setup LLM, embedding, and callback manager
+    # Step 4: Setup LLM, embedding, and callback manager
     handler = TokenCountingHandler()
     callback_manager = CallbackManager([handler])
     model = data.get("llm_model", CHOSEN_MODEL)
@@ -79,12 +86,15 @@ def question():
     llm = OpenAI(model=model, api_key=api_key, temperature=0.0, callback_manager=callback_manager)
     embed_model = OpenAIEmbedding(model_name=embedding_model, api_key=api_key, callback_manager=callback_manager)
 
-    # Step 4: Path extraction
+    # Step 5: LLM path extraction
+    t3 = time.time()
     extracted_nodes = asyncio.run(
         SchemaLLMPathExtractor(llm=llm, strict=False).acall(filtered_docs, show_progress=False)
     )
+    print(f"⏱️ LLM path extraction took {time.time() - t3:.2f} seconds")
 
-    # Step 5: Build/load index
+    # Step 6: Build/load index
+    t4 = time.time()
     if index_cached:
         with open(index_path, 'r', encoding='utf-8') as f:
             # For demonstration, we just note the cache; actual index loading would require more logic
@@ -96,7 +106,6 @@ def question():
         with open(index_path, 'w', encoding='utf-8') as f:
             f.write('built')
         index_status = 'rebuilt'
-
     index = PropertyGraphIndex(
         nodes=extracted_nodes,
         embed_model=embed_model,
@@ -107,18 +116,17 @@ def question():
         include_text=True,
         similarity_top_k=3
     )
+    print(f"⏱️ Index construction/load took {time.time() - t4:.2f} seconds")
 
-    # Step 6: Run orchestrator
+    # Step 7: Run orchestrator and generate response
+    t5 = time.time()
     orchestrator = MarvelGraphOrchestrator(query_engine)
-
     modified_question = orchestrator.build_modified_prompt(user_question, CHARACTER_BIOS)
-
-
-    # Call orchestrator with modified question
     final_state = orchestrator.app.invoke({"query": modified_question})
     response = final_state["final_response"]
+    print(f"⏱️ Final response generation took {time.time() - t5:.2f} seconds")
 
-    # Step 7: Calculate cost
+    # Step 8: Calculate cost
     prompt_tokens = handler.prompt_llm_token_count
     completion_tokens = handler.completion_llm_token_count
     embed_tokens = handler.total_embedding_token_count
