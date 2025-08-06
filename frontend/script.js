@@ -6,29 +6,27 @@ document.getElementById('api-key').addEventListener('input', function (e) {
 });
 
 // Handle form submission
-const form = document.getElementById('query-form');
+const form = document.getElementById('question-form');
 form.addEventListener('submit', async function (e) {
     e.preventDefault();
-    const query = document.getElementById('query').value.trim();
+    const question = document.getElementById('question').value.trim();
     const llmModel = document.querySelector('input[name="llm-model"]:checked').value;
     const embeddingModel = document.querySelector('input[name="embedding-model"]:checked').value;
 
-    if (!userApiKey) {
-        showToast('Please enter your OpenAI API key.', 'danger');
-        return;
-    }
-    if (!query) {
-        showToast('Please enter a query.', 'danger');
+    // Allow submitting even if API key is empty; backend will fall back to env variable if set.
+    // Only show error if backend returns 400 with missing key message.
+    if (!question) {
+        showToast('Please enter a question.', 'danger');
         return;
     }
 
     setLoading(true);
     try {
-        const response = await fetch('/query', {
+        const response = await fetch('/question', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                query: query,
+                question: question,
                 api_key: userApiKey,
                 llm_model: llmModel,
                 embedding_model: embeddingModel
@@ -37,6 +35,9 @@ form.addEventListener('submit', async function (e) {
         const data = await response.json();
         if (response.ok) {
             showResult(data.response, data.cost_usd, data.build_status);
+        } else if (response.status === 400 && data.error && data.error.startsWith('Missing OpenAI API key')) {
+            // Show error only if backend says key is missing
+            showToast(data.error, 'danger');
         } else {
             showResult('Error: ' + (data.error || 'Unknown error'), null, null);
         }

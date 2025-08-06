@@ -23,12 +23,17 @@ import networkx as nx
 
 app = Flask(__name__)
 
-@app.route('/query', methods=['POST'])
-def query():
+@app.route('/question', methods=['POST'])
+def question():
     data = request.get_json()
-    user_query = data.get('query', '')
-    if not user_query:
-        return jsonify({'error': 'Missing query'}), 400
+    user_question = data.get('question', '')
+    # --- API key fallback logic ---
+    # 1. Use key from frontend if provided; 2. else use env variable; 3. else error
+    api_key = data.get('api_key') or OPENAI_API_KEY
+    if not api_key:
+        return jsonify({'error': 'Missing OpenAI API key. Please provide via UI or set OPENAI_API_KEY as an environment variable.'}), 400
+    if not user_question:
+        return jsonify({'error': 'Missing question'}), 400
 
     # --- Cache status flags ---
     graph_path = os.path.join('graphs', 'marvel_graph.gml')
@@ -70,8 +75,8 @@ def query():
     # Step 3: Setup LLM, embedding, and callback manager
     handler = TokenCountingHandler()
     callback_manager = CallbackManager([handler])
-    llm = OpenAI(model=CHOSEN_MODEL, api_key=OPENAI_API_KEY, temperature=0.0, callback_manager=callback_manager)
-    embed_model = OpenAIEmbedding(model_name=CHOSEN_MODEL_EMBEDDINGS, api_key=OPENAI_API_KEY, callback_manager=callback_manager)
+    llm = OpenAI(model=CHOSEN_MODEL, api_key=api_key, temperature=0.0, callback_manager=callback_manager)
+    embed_model = OpenAIEmbedding(model_name=CHOSEN_MODEL_EMBEDDINGS, api_key=api_key, callback_manager=callback_manager)
 
     # Step 4: Path extraction
     extracted_nodes = asyncio.run(
@@ -124,9 +129,9 @@ def query():
         "Jean Grey's telekinetic powers are conferred by the Telepathy Mutation."
     )
 
-    modified_query = (
+    modified_question = (
         "You are a Marvel AI assistant trained on genetic data, powers, and affiliations.\n"
-        "When answering questions, you must first identify the characters mentioned or implied by the query.\n"
+        "When answering questions, you must first identify the characters mentioned or implied by the question.\n"
         "Then, for each such character, include a short 1–2 sentence biography from the list provided below.\n"
         "Use only these bios and graph facts. Avoid speculation or outside knowledge.\n\n"
         "Bios:\n"
@@ -134,13 +139,13 @@ def query():
         "Here’s an example format:\n"
         f"Q: {example_question}\n"
         f"{example_answer}\n\n"
-        f"Now answer this question:\nQ: {user_query}"
+        f"Now answer this question:\nQ: {user_question}"
     )
 
 
 
-    # Call orchestrator with modified query
-    final_state = orchestrator.app.invoke({"query": modified_query})
+    # Call orchestrator with modified question
+    final_state = orchestrator.app.invoke({"query": modified_question})
     response = final_state["final_response"]
 
     # Step 7: Calculate cost

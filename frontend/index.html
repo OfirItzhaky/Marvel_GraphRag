@@ -10,9 +10,15 @@
 <body>
 <div class="container py-5">
     <h1 class="mb-4 text-center">🦸‍♂️ Marvel GraphRAG Demo</h1>
-    <form id="query-form" class="card p-4 mb-4 shadow-sm">
+    <form id="question-form" class="card p-4 mb-4 shadow-sm">
         <div class="mb-3">
-            <label for="api-key" class="form-label">OpenAI API Key</label>
+            <!-- Security reminder: This is a recommendation, not a functional restriction. -->
+            <label for="api-key" class="form-label">
+                <strong>OpenAI API Key</strong>
+                <span class="text-muted" style="font-size: 0.95em; font-weight: 400;">
+                    (Sec Recommendation: only use this if the <code>OPENAI_API_KEY</code> environment variable is not set — using ENV var the preferred secure option)
+                </span>
+            </label>
             <input type="password" class="form-control" id="api-key" placeholder="sk-..." autocomplete="off">
         </div>
         <div class="row mb-3">
@@ -48,8 +54,8 @@
             </div>
         </div>
         <div class="mb-3">
-            <label for="query" class="form-label">Marvel Query</label>
-            <input type="text" class="form-control" id="query" placeholder="e.g. What gene gives Jean Grey her telekinetic powers?" required>
+            <label for="question" class="form-label">Marvel Question</label>
+            <input type="text" class="form-control" id="question" placeholder="e.g. What gene gives Jean Grey her telekinetic powers?" required>
         </div>
         <div class="d-flex justify-content-between align-items-center">
             <button type="submit" class="btn btn-primary" id="submit-btn">
