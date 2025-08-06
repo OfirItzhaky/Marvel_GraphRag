@@ -34,8 +34,10 @@ This platform merges structured data (a graph of characters, genes, powers, and 
 
 ```bash
 # Clone the repo
-$ git clone https://github.com/your-name/marvel-graphrag
-$ cd marvel-graphrag
+$ git clone https://github.com/OfirItzhaky/Marvel_GraphRag
+
+# Make sure you're in the project directory before running
+$ cd Marvel_GraphRag
 
 # Create a virtual environment
 $ python -m venv venv
