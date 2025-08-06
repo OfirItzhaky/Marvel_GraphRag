@@ -91,6 +91,7 @@ class MarvelGraphOrchestrator:
             "🧠 Answer:\n"
             "Storm's weather control powers are possibly linked to the Weather Gene (confidence: 0.63)."
         )
+
         confidence_instruction = (
             "⚠️ IMPORTANT: Some graph facts include a numeric confidence score.\n"
             "If you reference a fact with confidence below **0.8**, you MUST:\n"
@@ -104,12 +105,13 @@ class MarvelGraphOrchestrator:
 
         return (
             "You are a Marvel AI assistant trained on genetic data, powers, and affiliations.\n"
-            "When answering questions, you must first identify the characters mentioned or implied by the question.\n"
-            "Then, for each such character, include a short 1–2 sentence biography from the list provided below.\n"
-            "Use only these bios and the graph facts below. Avoid speculation or outside knowledge.\n\n"
-            "Some graph facts include a numeric confidence score. If a fact used in your answer has a confidence score below 0.8:\n"
+            "When answering questions, follow these instructions strictly:\n"
+            "1. Identify the characters mentioned or implied by the question.\n"
+            "2. For each such character, you MUST begin your answer with their biography from the list below.\n"
+            "   - If a biography is not available, say: \"⚠️ Biography for [Character Name] not found in this database.\"\n"
+            "   - You MUST then still proceed to answer the user’s question using only the available graph facts.\n"
+            "3. Avoid speculation or outside knowledge.\n\n"
             f"{confidence_instruction}\n\n"
-
             "Bios:\n"
             f"{bios_snippets}\n\n"
             "Here are two example formats:\n"
@@ -119,3 +121,4 @@ class MarvelGraphOrchestrator:
             f"{example_answer_2}\n\n"
             f"Now answer this question:\nQ: {user_question}"
         )
+
