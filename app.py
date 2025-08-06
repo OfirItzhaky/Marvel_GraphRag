@@ -170,26 +170,12 @@ def cache_status():
 
 @app.route('/show-graph', methods=['GET'])
 def show_graph():
-    graph_path = os.path.join('graphs', 'marvel_graph.gml')
-    if not os.path.exists(graph_path):
-        return jsonify({"error": "Graph not yet built. Please run a query first."}), 404
-    # Load graph
-    G = nx.read_gml(graph_path)
-    # Draw graph (reuse logic from build_and_save_mock_marvel_graph)
-    pos = nx.spring_layout(G, seed=42)
-    edge_labels = nx.get_edge_attributes(G, 'relation')
-    plt.figure(figsize=(10, 7))
-    nx.draw(G, pos, with_labels=True, node_color='lightcoral', node_size=2500,
-            font_size=9, font_weight='bold', arrows=True)
-    nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_color='gray')
-    plt.title("Mock Marvel Universe Graph")
-    plt.tight_layout()
-    # Save to BytesIO
-    img_bytes = io.BytesIO()
-    plt.savefig(img_bytes, format='png')
-    plt.close()
-    img_bytes.seek(0)
-    return send_file(img_bytes, mimetype='image/png')
+    html_path = os.path.join('graphs', 'deliverable_marvel_graph_visual.html')
+    if not os.path.exists(html_path):
+        return "⚠️ Graph visualization not found. Please generate it first.", 404
+    with open(html_path, 'r', encoding='utf-8') as f:
+        html_content = f.read()
+    return html_content, 200, {'Content-Type': 'text/html'}
 
 @app.route('/graph/<character>', methods=['GET'])
 def graph_character(character):

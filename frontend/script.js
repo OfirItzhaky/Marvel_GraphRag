@@ -66,26 +66,8 @@ resetBtn.addEventListener('click', async function () {
 
 // Show Graph button logic
 const showGraphBtn = document.getElementById('show-graph-btn');
-const graphContainer = document.getElementById('graph-container');
-const graphImage = document.getElementById('graphImage');
-showGraphBtn.addEventListener('click', async function () {
-    setLoading(true);
-    graphContainer.style.display = 'none';
-    try {
-        const response = await fetch('/show-graph');
-        if (response.ok) {
-            const blob = await response.blob();
-            const url = URL.createObjectURL(blob);
-            graphImage.src = url;
-            graphContainer.style.display = 'block';
-        } else {
-            const data = await response.json();
-            showToast(data.error || 'Failed to load graph.', 'danger');
-        }
-    } catch (err) {
-        showToast('Network error while loading graph.', 'danger');
-    }
-    setLoading(false);
+showGraphBtn.addEventListener('click', function () {
+    window.open('/show-graph', '_blank');
 });
 
 // Character Graph Explorer logic
