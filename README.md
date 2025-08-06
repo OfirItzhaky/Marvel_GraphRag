@@ -45,22 +45,24 @@ $ source venv/bin/activate  # Or venv\Scripts\activate on Windows
 
 # Install dependencies
 $ pip install -r requirements.txt
-```
-# Setup ENV Variables
 
-✅ Option 1: Set as an Environment Variable (Recommended for security)
-# On macOS/Linux
+
+```
+## Setup ENV Variables
+
+# ✅ Option 1: Set as an Environment Variable (Recommended for security)
+$ On macOS/Linux
 $ export OPENAI_API_KEY=your-api-key-here
 
-# On Windows (CMD)
+## On Windows (CMD)
 > set OPENAI_API_KEY=your-api-key-here
 
-# On Windows (PowerShell)
+### On Windows (PowerShell)
 > $env:OPENAI_API_KEY="your-api-key-here"
 💡 PyCharm Users:
 You can set the environment variable in Run → Edit Configurations → Environment Variables.
 
-⚠️ Option 2: Enter via the UI (less secure)
+## ⚠️ Option 2: Enter via the UI (less secure)
 If you don’t set the API key as an environment variable, the app will prompt you to enter it in the browser UI.
 This works — but keep in mind it's less secure, as your key is visible in the request payload.
 
