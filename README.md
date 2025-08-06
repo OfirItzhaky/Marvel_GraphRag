@@ -130,7 +130,11 @@ Then open your browser to `http://localhost:5000`
 * LangGraph routes queries based on keywords to a single path (can be expanded).
 * Cost tracking uses OpenAI’s per-model pricing.
 * All models and API keys are user-controlled via the UI.
+* Cost calculation uses a configurable dictionary (`MODEL_COST`) to estimate $ cost per model/token type.
 
+📌 Prompt Injection & Contextual Guidance
+The system injects contextual instructions (e.g., character bios and confidence thresholds) into the prompt before calling the LLM.
+Includes example-based formatting to help the model respond accurately and handle low-confidence facts properly.
 ---
 
 ## 🔍 Sample Queries
@@ -143,15 +147,6 @@ Then open your browser to `http://localhost:5000`
 
 ---
 
-## 📖 Deliverables
-
-* [x] Knowledge graph schema + visual output (via Pyvis)
-* [x] LLM+Graph integration (LangGraph + LlamaIndex)
-* [x] Flask API (query, cache, visualization)
-* [x] Frontend demo with full functionality
-* [x] README with instructions, architecture, and samples
-
----
 
 ## 🪄 Future Enhancements
 
