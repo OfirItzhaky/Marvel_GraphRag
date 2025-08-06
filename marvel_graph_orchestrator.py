@@ -9,11 +9,22 @@ from state_models import MarvelState
 
 class MarvelGraphOrchestrator:
     def __init__(self, query_engine):
+        """
+        Initialize the orchestrator with a query engine and build the LangGraph graph.
+
+        @param query_engine: An object that supports `.query()` method for querying the graph.
+        """
         self.query_engine = query_engine
         self.app = self._build_graph()
 
 
     def classify_query_node(self, state: MarvelState) -> dict:
+        """
+        Classify the incoming query into a type based on routing rules.
+
+        @param state: The current state containing the user's query.
+        @return: A dictionary with updated state including 'query_type'.
+        """
         print("🧭 classify_query_node received:", state)
 
         q = state.query.lower()
@@ -35,6 +46,12 @@ class MarvelGraphOrchestrator:
         return new_state
 
     def query_graph_node(self, state: MarvelState) -> dict:
+        """
+        Query the graph using the current query and store the raw result in the state.
+
+        @param state: The current MarvelState containing the query.
+        @return: A dictionary with the updated state including 'raw_result'.
+        """
         print("📡 query_graph_node running...")
 
         response = self.query_engine.query(state.query)
@@ -42,12 +59,23 @@ class MarvelGraphOrchestrator:
         return dict(state)
 
     def format_response_node(self, state: MarvelState) -> dict:
+        """
+        Format the final response to be returned to the user.
+
+        @param state: The current MarvelState containing the raw result.
+        @return: A dictionary with the updated state including 'final_response'.
+        """
         print("🎨 format_response_node running...")
 
         state.final_response = f"🧠 Answer: {state.raw_result.strip()}"
         return dict(state)
 
     def _build_graph(self):
+        """
+        Build and compile the LangGraph workflow graph.
+
+        @return: The compiled graph application object.
+        """
         graph = StateGraph(MarvelState)
 
         graph.add_node("classify", self.classify_query_node)
@@ -65,6 +93,13 @@ class MarvelGraphOrchestrator:
         return graph.compile()
 
     def build_modified_prompt(self, user_question: str, bios_dict: dict) -> str:
+        """
+        Construct a prompt that includes bios, examples, and graph-based instructions for the LLM.
+
+        @param user_question: The raw question from the user.
+        @param bios_dict: A dictionary mapping character names to their biography strings.
+        @return: A fully formatted prompt string to pass to the LLM.
+        """
         bios_snippets = "\n".join([f"{k}: {v}" for k, v in bios_dict.items()])
 
         example_bio_1 = (
