@@ -88,6 +88,72 @@ showGraphBtn.addEventListener('click', async function () {
     setLoading(false);
 });
 
+// Character Graph Explorer logic
+const CHARACTER_LIST = [
+    "Wolverine",
+    "Storm",
+    "Professor X",
+    "Magneto",
+    "Jean Grey",
+    "Cyclops",
+    "Beast",
+    "Mystique"
+];
+
+const characterTabs = document.getElementById('character-tabs');
+const characterGraphOutput = document.getElementById('character-graph-output');
+
+function renderCharacterTabs() {
+    characterTabs.innerHTML = '';
+    CHARACTER_LIST.forEach((name, idx) => {
+        const li = document.createElement('li');
+        li.className = 'nav-item';
+        const btn = document.createElement('button');
+        btn.className = 'nav-link' + (idx === 0 ? ' active' : '');
+        btn.setAttribute('data-character', name);
+        btn.type = 'button';
+        btn.textContent = name;
+        btn.addEventListener('click', () => handleCharacterTabClick(name, btn));
+        li.appendChild(btn);
+        characterTabs.appendChild(li);
+    });
+}
+
+async function handleCharacterTabClick(character, btn) {
+    // Highlight the selected tab
+    Array.from(characterTabs.querySelectorAll('.nav-link')).forEach(tab => tab.classList.remove('active'));
+    btn.classList.add('active');
+    characterGraphOutput.style.display = 'block';
+    characterGraphOutput.innerHTML = '<div class="text-center text-secondary py-2">Loading...</div>';
+    try {
+        const response = await fetch(`/graph/${encodeURIComponent(character)}`);
+        if (response.ok) {
+            const data = await response.json();
+            if (data.connections && data.connections.length > 0) {
+                let table = `<table class="table table-sm table-bordered mb-0"><thead><tr><th>Entity</th><th>Relation</th></tr></thead><tbody>`;
+                data.connections.forEach(conn => {
+                    table += `<tr><td>${conn.entity}</td><td>${conn.relation}</td></tr>`;
+                });
+                table += '</tbody></table>';
+                characterGraphOutput.innerHTML = `<div class="mb-2"><strong>${data.character}</strong> connections:</div>${table}`;
+            } else {
+                characterGraphOutput.innerHTML = `<div class="text-warning">No connections found for <strong>${data.character}</strong>.</div>`;
+            }
+        } else {
+            const err = await response.json();
+            characterGraphOutput.innerHTML = `<div class="text-danger">${err.error || 'Character not found.'}</div>`;
+        }
+    } catch (err) {
+        characterGraphOutput.innerHTML = `<div class="text-danger">Network error. Please try again.</div>`;
+    }
+}
+
+// Initialize explorer on page load
+renderCharacterTabs();
+// Optionally, auto-load the first character
+const firstTab = characterTabs.querySelector('.nav-link');
+if (firstTab) firstTab.click();
+
 // Show result in the UI
 function showResult(answer, cost, buildStatus) {
     const resultContainer = document.getElementById('result-container');

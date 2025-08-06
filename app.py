@@ -20,6 +20,7 @@ from llama_index.core.schema import Document
 import asyncio
 from flask import send_from_directory, render_template
 import networkx as nx
+import urllib.parse
 
 app = Flask(__name__)
 
@@ -214,6 +215,28 @@ def show_graph():
     plt.close()
     img_bytes.seek(0)
     return send_file(img_bytes, mimetype='image/png')
+
+@app.route('/graph/<character>', methods=['GET'])
+def graph_character(character):
+    graph_path = os.path.join('graphs', 'marvel_graph.gml')
+    # Load or rebuild graph
+    if os.path.exists(graph_path):
+        G = nx.read_gml(graph_path)
+    else:
+        G = build_and_save_mock_marvel_graph()
+    # Decode character name from URL
+    character_decoded = urllib.parse.unquote(character)
+    if character_decoded not in G:
+        return jsonify({"error": f"Character '{character_decoded}' not found in the Marvel graph."}), 404
+    connections = []
+    for neighbor in G.neighbors(character_decoded):
+        edge_data = G.get_edge_data(character_decoded, neighbor)
+        relation = edge_data.get('relation', 'related_to') if edge_data else 'related_to'
+        connections.append({"entity": neighbor, "relation": relation})
+    return jsonify({
+        "character": character_decoded,
+        "connections": connections
+    })
 
 @app.route('/')
 def serve_index():
