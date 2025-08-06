@@ -1,0 +1,127 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script src="lib/bindings/utils.js"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 900px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "#1f78b4", "font": {"color": "#000000"}, "id": "Wolverine", "label": "Wolverine", "shape": "dot", "title": "Character: Wolverine"}, {"color": "#ff7f00", "font": {"color": "#000000"}, "id": "Regeneration", "label": "Regeneration", "shape": "dot", "title": "Power: Regeneration"}, {"color": "#1f78b4", "font": {"color": "#000000"}, "id": "Storm", "label": "Storm", "shape": "dot", "title": "Character: Storm"}, {"color": "#ff7f00", "font": {"color": "#000000"}, "id": "Weather Control", "label": "Weather Control", "shape": "dot", "title": "Power: Weather Control"}, {"color": "#1f78b4", "font": {"color": "#000000"}, "id": "Professor X", "label": "Professor X", "shape": "dot", "title": "Character: Professor X"}, {"color": "#ff7f00", "font": {"color": "#000000"}, "id": "Telepathy", "label": "Telepathy", "shape": "dot", "title": "Power: Telepathy"}, {"color": "#1f78b4", "font": {"color": "#000000"}, "id": "Magneto", "label": "Magneto", "shape": "dot", "title": "Character: Magneto"}, {"color": "#ff7f00", "font": {"color": "#000000"}, "id": "Magnetism", "label": "Magnetism", "shape": "dot", "title": "Power: Magnetism"}, {"color": "#1f78b4", "font": {"color": "#000000"}, "id": "Cyclops", "label": "Cyclops", "shape": "dot", "title": "Character: Cyclops"}, {"color": "#ff7f00", "font": {"color": "#000000"}, "id": "Optic Blast", "label": "Optic Blast", "shape": "dot", "title": "Power: Optic Blast"}, {"color": "#1f78b4", "font": {"color": "#000000"}, "id": "Jean Grey", "label": "Jean Grey", "shape": "dot", "title": "Character: Jean Grey"}, {"color": "#ff7f00", "font": {"color": "#000000"}, "id": "Telekinesis", "label": "Telekinesis", "shape": "dot", "title": "Power: Telekinesis"}, {"color": "#1f78b4", "font": {"color": "#000000"}, "id": "Beast", "label": "Beast", "shape": "dot", "title": "Character: Beast"}, {"color": "#ff7f00", "font": {"color": "#000000"}, "id": "Super Strength", "label": "Super Strength", "shape": "dot", "title": "Power: Super Strength"}, {"color": "#1f78b4", "font": {"color": "#000000"}, "id": "Mystique", "label": "Mystique", "shape": "dot", "title": "Character: Mystique"}, {"color": "#ff7f00", "font": {"color": "#000000"}, "id": "Shapeshifting", "label": "Shapeshifting", "shape": "dot", "title": "Power: Shapeshifting"}, {"color": "#6a3d9a", "font": {"color": "#000000"}, "id": "X-Men", "label": "X-Men", "shape": "dot", "title": "Team: X-Men"}, {"color": "#6a3d9a", "font": {"color": "#000000"}, "id": "Brotherhood", "label": "Brotherhood", "shape": "dot", "title": "Team: Brotherhood"}, {"color": "#b2df8a", "font": {"color": "#000000"}, "id": "Nightcrawler", "label": "Nightcrawler", "shape": "dot", "title": "Other: Nightcrawler"}, {"color": "#33a02c", "font": {"color": "#000000"}, "id": "Gene X-23", "label": "Gene X-23", "shape": "dot", "title": "Gene: Gene X-23"}, {"color": "#33a02c", "font": {"color": "#000000"}, "id": "X-Gene", "label": "X-Gene", "shape": "dot", "title": "Gene: X-Gene"}, {"color": "#33a02c", "font": {"color": "#000000"}, "id": "Telepathy Mutation", "label": "Telepathy Mutation", "shape": "dot", "title": "Gene: Telepathy Mutation"}, {"color": "#33a02c", "font": {"color": "#000000"}, "id": "Magnetism Gene", "label": "Magnetism Gene", "shape": "dot", "title": "Gene: Magnetism Gene"}, {"color": "#33a02c", "font": {"color": "#000000"}, "id": "Shapeshift Gene", "label": "Shapeshift Gene", "shape": "dot", "title": "Gene: Shapeshift Gene"}]);
+                  edges = new vis.DataSet([{"arrows": "to", "from": "Wolverine", "label": "possesses_power", "title": "possesses_power", "to": "Regeneration"}, {"arrows": "to", "from": "Wolverine", "label": "member_of", "title": "member_of", "to": "X-Men"}, {"arrows": "to", "from": "Wolverine", "label": "has_mutation", "title": "has_mutation", "to": "Gene X-23"}, {"arrows": "to", "from": "Storm", "label": "possesses_power", "title": "possesses_power", "to": "Weather Control"}, {"arrows": "to", "from": "Storm", "label": "member_of", "title": "member_of", "to": "X-Men"}, {"arrows": "to", "from": "Professor X", "label": "possesses_power", "title": "possesses_power", "to": "Telepathy"}, {"arrows": "to", "from": "Professor X", "label": "member_of", "title": "member_of", "to": "X-Men"}, {"arrows": "to", "from": "Professor X", "label": "friend_and_rival_of", "title": "friend_and_rival_of", "to": "Magneto"}, {"arrows": "to", "from": "Professor X", "label": "has_mutation", "title": "has_mutation", "to": "X-Gene"}, {"arrows": "to", "from": "Magneto", "label": "possesses_power", "title": "possesses_power", "to": "Magnetism"}, {"arrows": "to", "from": "Magneto", "label": "member_of", "title": "member_of", "to": "Brotherhood"}, {"arrows": "to", "from": "Magneto", "label": "has_mutation", "title": "has_mutation", "to": "Magnetism Gene"}, {"arrows": "to", "from": "Cyclops", "label": "possesses_power", "title": "possesses_power", "to": "Optic Blast"}, {"arrows": "to", "from": "Cyclops", "label": "member_of", "title": "member_of", "to": "X-Men"}, {"arrows": "to", "from": "Jean Grey", "label": "possesses_power", "title": "possesses_power", "to": "Telekinesis"}, {"arrows": "to", "from": "Jean Grey", "label": "member_of", "title": "member_of", "to": "X-Men"}, {"arrows": "to", "from": "Jean Grey", "label": "partner_of", "title": "partner_of", "to": "Cyclops"}, {"arrows": "to", "from": "Jean Grey", "label": "has_mutation", "title": "has_mutation", "to": "Telepathy Mutation"}, {"arrows": "to", "from": "Beast", "label": "possesses_power", "title": "possesses_power", "to": "Super Strength"}, {"arrows": "to", "from": "Beast", "label": "member_of", "title": "member_of", "to": "X-Men"}, {"arrows": "to", "from": "Mystique", "label": "possesses_power", "title": "possesses_power", "to": "Shapeshifting"}, {"arrows": "to", "from": "Mystique", "label": "member_of", "title": "member_of", "to": "Brotherhood"}, {"arrows": "to", "from": "Mystique", "label": "mother_of", "title": "mother_of", "to": "Nightcrawler"}, {"arrows": "to", "from": "Mystique", "label": "has_mutation", "title": "has_mutation", "to": "Shapeshift Gene"}, {"arrows": "to", "from": "Gene X-23", "label": "confers", "title": "confers", "to": "Regeneration"}, {"arrows": "to", "from": "X-Gene", "label": "confers", "title": "confers", "to": "Telepathy"}, {"arrows": "to", "from": "Telepathy Mutation", "label": "confers", "title": "confers", "to": "Telekinesis"}, {"arrows": "to", "from": "Magnetism Gene", "label": "confers", "title": "confers", "to": "Magnetism"}, {"arrows": "to", "from": "Shapeshift Gene", "label": "confers", "title": "confers", "to": "Shapeshifting"}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {"physics": {"barnesHut": {"gravitationalConstant": -20000, "springLength": 150, "springConstant": 0.05}, "minVelocity": 0.75}, "interaction": {"hover": true, "tooltipDelay": 100, "zoomView": true, "dragView": true}, "nodes": {"font": {"size": 20, "face": "arial"}, "scaling": {"min": 10, "max": 40}}, "edges": {"arrows": {"to": {"enabled": true, "scaleFactor": 0.6}}, "font": {"size": 14, "align": "middle"}, "smooth": {"type": "dynamic"}}};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>

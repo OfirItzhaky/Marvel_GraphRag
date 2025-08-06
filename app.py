@@ -2,11 +2,10 @@ from flask import Flask, request, jsonify, send_file
 import os
 import json
 import io
-import networkx as nx
 import matplotlib.pyplot as plt
-from cache_utils import clear_cache, cache_exists, ensure_cache_dir
-from character_bios import CHARACTER_BIOS
+from cache_utils import clear_cache
 from config import OPENAI_API_KEY, CHOSEN_MODEL, CHOSEN_MODEL_EMBEDDINGS
+from character_bios import CHARACTER_BIOS
 from cost_utils import calc_cost
 from graph_utils import build_and_save_mock_marvel_graph, extract_humanized_triplets_from_graph, \
     filter_documents_by_rules
@@ -18,9 +17,8 @@ from llama_index.embeddings.openai import OpenAIEmbedding
 from llama_index.llms.openai import OpenAI
 from llama_index.core.schema import Document
 import asyncio
-from flask import send_from_directory, render_template
+from flask import send_from_directory
 import networkx as nx
-import urllib.parse
 
 app = Flask(__name__)
 
@@ -76,8 +74,10 @@ def question():
     # Step 3: Setup LLM, embedding, and callback manager
     handler = TokenCountingHandler()
     callback_manager = CallbackManager([handler])
-    llm = OpenAI(model=CHOSEN_MODEL, api_key=api_key, temperature=0.0, callback_manager=callback_manager)
-    embed_model = OpenAIEmbedding(model_name=CHOSEN_MODEL_EMBEDDINGS, api_key=api_key, callback_manager=callback_manager)
+    model = data.get("llm_model", CHOSEN_MODEL)
+    embedding_model = data.get("'text-embedding-ada-002'", CHOSEN_MODEL_EMBEDDINGS)
+    llm = OpenAI(model=model, api_key=api_key, temperature=0.0, callback_manager=callback_manager)
+    embed_model = OpenAIEmbedding(model_name=embedding_model, api_key=api_key, callback_manager=callback_manager)
 
     # Step 4: Path extraction
     extracted_nodes = asyncio.run(
@@ -110,39 +110,8 @@ def question():
 
     # Step 6: Run orchestrator
     orchestrator = MarvelGraphOrchestrator(query_engine)
-    from character_bios import CHARACTER_BIOS
 
-    # Prepare bios string
-    from character_bios import CHARACTER_BIOS
-
-    bios_snippets = "\n".join([f"{k}: {v}" for k, v in CHARACTER_BIOS.items()])
-
-    example_bio = (
-        "Jean Grey: Jean Grey is a powerful mutant telepath and telekinetic. "
-        "She shares a deep, often tragic love with Cyclops, and her inner battles have placed her at the center of multiple pivotal events."
-    )
-
-    example_question = "What gene gives Jean Grey her telekinetic powers?"
-    example_answer = (
-        "🧬 Biography:\n"
-        f"{example_bio}\n\n"
-        "🧠 Answer:\n"
-        "Jean Grey's telekinetic powers are conferred by the Telepathy Mutation."
-    )
-
-    modified_question = (
-        "You are a Marvel AI assistant trained on genetic data, powers, and affiliations.\n"
-        "When answering questions, you must first identify the characters mentioned or implied by the question.\n"
-        "Then, for each such character, include a short 1–2 sentence biography from the list provided below.\n"
-        "Use only these bios and graph facts. Avoid speculation or outside knowledge.\n\n"
-        "Bios:\n"
-        f"{bios_snippets}\n\n"
-        "Here’s an example format:\n"
-        f"Q: {example_question}\n"
-        f"{example_answer}\n\n"
-        f"Now answer this question:\nQ: {user_question}"
-    )
-
+    modified_question = orchestrator.build_modified_prompt(user_question, CHARACTER_BIOS)
 
 
     # Call orchestrator with modified question
@@ -154,7 +123,7 @@ def question():
     completion_tokens = handler.completion_llm_token_count
     embed_tokens = handler.total_embedding_token_count
     cost_usd = calc_cost(
-        model=CHOSEN_MODEL,
+        model=model,
         prompt=prompt_tokens,
         completion=completion_tokens,
         embed=embed_tokens,
@@ -170,12 +139,18 @@ def question():
     return jsonify({
         "response": response,
         "cost_usd": cost_usd,
-        "build_status": build_status
+        "build_status": build_status,
+        "model_used": model
     })
+
 
 @app.route('/reset-cache', methods=['POST'])
 def reset_cache():
     clear_cache()
+    gml_path = os.path.join('graphs', 'marvel_graph.gml')
+    if os.path.exists(gml_path):
+        os.remove(gml_path)
+        print('✅ GML file deleted.')
     return jsonify({"status": "cache cleared"})
 
 @app.route('/cache-status', methods=['GET'])
@@ -218,12 +193,13 @@ def show_graph():
 
 @app.route('/graph/<character>', methods=['GET'])
 def graph_character(character):
+    import urllib.parse
     graph_path = os.path.join('graphs', 'marvel_graph.gml')
-    # Load or rebuild graph
-    if os.path.exists(graph_path):
-        G = nx.read_gml(graph_path)
-    else:
-        G = build_and_save_mock_marvel_graph()
+    # Only load if file exists; do not rebuild here
+    if not os.path.exists(graph_path):
+        print("[WARN] /graph/<character> called but marvel_graph.gml is missing. Graph not initialized.")
+        return jsonify({"error": "Graph not yet initialized. Please submit a Marvel question once to create the graph."}), 404
+    G = nx.read_gml(graph_path)
     # Decode character name from URL
     character_decoded = urllib.parse.unquote(character)
     if character_decoded not in G:
@@ -248,6 +224,5 @@ def serve_static_file(path):
 
 
 
-
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, use_reloader=False)

@@ -34,15 +34,15 @@ form.addEventListener('submit', async function (e) {
         });
         const data = await response.json();
         if (response.ok) {
-            showResult(data.response, data.cost_usd, data.build_status);
+            showResult(data.response, data.cost_usd, data.build_status, data.model_used);
         } else if (response.status === 400 && data.error && data.error.startsWith('Missing OpenAI API key')) {
             // Show error only if backend says key is missing
             showToast(data.error, 'danger');
         } else {
-            showResult('Error: ' + (data.error || 'Unknown error'), null, null);
+            showResult('Error: ' + (data.error || 'Unknown error'), null, null, null);
         }
     } catch (err) {
-        showResult('Network error. Please try again.', null, null);
+        showResult('Network error. Please try again.', null, null, null);
     }
     setLoading(false);
 });
@@ -130,9 +130,9 @@ async function handleCharacterTabClick(character, btn) {
         if (response.ok) {
             const data = await response.json();
             if (data.connections && data.connections.length > 0) {
-                let table = `<table class="table table-sm table-bordered mb-0"><thead><tr><th>Entity</th><th>Relation</th></tr></thead><tbody>`;
+                let table = `<table class="table table-sm table-bordered mb-0"><thead><tr><th>Relation</th><th>Entity</th></tr></thead><tbody>`;
                 data.connections.forEach(conn => {
-                    table += `<tr><td>${conn.entity}</td><td>${conn.relation}</td></tr>`;
+                    table += `<tr><td>${conn.relation}</td><td>${conn.entity}</td></tr>`;
                 });
                 table += '</tbody></table>';
                 characterGraphOutput.innerHTML = `<div class="mb-2"><strong>${data.character}</strong> connections:</div>${table}`;
@@ -155,13 +155,13 @@ const firstTab = characterTabs.querySelector('.nav-link');
 if (firstTab) firstTab.click();
 
 // Show result in the UI
-function showResult(answer, cost, buildStatus) {
+function showResult(answer, cost, buildStatus, modelUsed) {
     const resultContainer = document.getElementById('result-container');
     const answerText = document.getElementById('answer-text');
     const costInfo = document.getElementById('cost-info');
     answerText.textContent = answer || '';
     if (cost !== null && cost !== undefined) {
-        costInfo.textContent = `Estimated cost: $${cost} USD`;
+        costInfo.textContent = `Estimated cost: $${cost} USD | Model: ${modelUsed || 'Unknown'}`;
         costInfo.classList.remove('d-none');
     } else {
         costInfo.textContent = '';
