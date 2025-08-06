@@ -11,6 +11,9 @@ MODEL_COST = {
     "text-embedding-ada-002": {"input": 0.0001},
     "text-embedding-3-large": {"input": 0.00013}  ,
     "gpt-3.5-turbo-0125": {"input": 0.0005, "output": 0.0015},
+"gpt-3.5-turbo": {"input": 0.0005, "output": 0.0015},
+"gpt-3.5-turbo-0125": {"input": 0.0005, "output": 0.0015},
+
     # accurate as of mid-2024
 }
 
